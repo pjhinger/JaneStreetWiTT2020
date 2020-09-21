@@ -1,21 +1,22 @@
 open! Base
 
 module Color = struct
-  type t = Red [@@deriving sexp_of]
-end
+  type t = | Red | Gold [@@deriving sexp_of]
+end 
 
-type t = { location : Position.t } [@@deriving sexp_of]
+type t = 
+  { location : Position.t 
+  ; color : Color.t
+  } [@@deriving sexp_of]
 
 let location t = t.location
 
-let color t =
-  ignore t;
-  Color.Red
-;;
+let color t = t.color
 
 let amount_to_grow t =
   match color t with
   | Red -> 2
+  | Gold -> 5
 ;;
 
 (* Exercise 05:
@@ -58,16 +59,17 @@ let create ~board ~snake =
     * Get all locations occupied by snake.
     * Find all locations NOT occupied by snake.
     * Choose a location at random from this list and return as an optional position.
-  *)    
-  let all_board_locations = Board.all_locations board in 
-    let all_snake_locations = Snake.all_locations snake in 
-      let possible_apple_locations = List.filter all_board_locations ~f:(fun element -> not(List.mem all_snake_locations element ~equal:Position.equal)) in 
-        match possible_apple_locations with 
-          | [] -> None
-          | _ -> Some { location = List.random_element_exn possible_apple_locations }
+  *)
+  let new_color = if (Random.int 100) < 50 then Color.Red else Color.Gold in 
+    let all_board_locations = Board.all_locations board in 
+      let all_snake_locations = Snake.all_locations snake in 
+        let possible_apple_locations = List.filter all_board_locations ~f:(fun element -> not(List.mem all_snake_locations element ~equal:Position.equal)) in 
+          match possible_apple_locations with 
+            | [] -> None
+            | _ -> Some { location = List.random_element_exn possible_apple_locations ; color = new_color }
 ;;
 
 module Exercises = struct
   let exercise05                    = create
-  let create_with_location location = { location }
+  let create_with_location location color = { location ; color }
 end

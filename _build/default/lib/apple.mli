@@ -1,7 +1,9 @@
 open! Base
 
 module Color : sig
-  type t = Red
+  type t = 
+  | Red
+  | Gold
 end
 
 type t [@@deriving sexp_of]
@@ -25,5 +27,5 @@ val amount_to_grow : t -> int
 
 module Exercises : sig
   val exercise05 : board:Board.t -> snake:Snake.t -> t option
-  val create_with_location : Position.t -> t
+  val create_with_location : Position.t -> Color.t -> t
 end

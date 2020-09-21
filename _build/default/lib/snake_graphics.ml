@@ -6,6 +6,7 @@ module Colors = struct
   let green            = Graphics.rgb 000 255 000
   let head_color       = Graphics.rgb 100 100 125
   let red              = Graphics.rgb 255 000 000
+  let gold             = Graphics.rgb 255 223 000
   let game_in_progress = Graphics.rgb 100 100 200
   let game_lost        = Graphics.rgb 200 100 100
   let game_won         = Graphics.rgb 100 200 100
@@ -13,6 +14,7 @@ module Colors = struct
   let apple_color apple =
     match Apple.color apple with
     | Red -> red
+    | Gold -> gold
   ;;
 end
 

@@ -18,7 +18,7 @@ val to_string : ?indent:int -> t -> string
 
     The head will be at position (length - 1, 0) and the initial direction
     should be towards the right. *)
-val create               : length:int -> t
+val create               : length:int -> direction:Direction.t -> x:int -> y:int -> t
 
 (** [grow_over_next_steps t n] tells the snake to grow by [n] in length over
     the next [n] steps. *)

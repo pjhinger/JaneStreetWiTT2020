@@ -1,45 +1,51 @@
 open! Base
 
 type t =
-  { mutable snake      : Snake.t
-  ; mutable game_state : Game_state.t
-  ; mutable apple      : Apple.t
-  ; board              : Board.t
-  ; mutable score      : int
+  { mutable snake          : Snake.t
+  ; mutable opponent       : Snake.t
+  ; mutable game_state     : Game_state.t
+  ; mutable apple          : Apple.t
+  ; board                  : Board.t
+  ; mutable score          : int
+  ; mutable opponent_score : int
   }
 [@@deriving sexp_of]
 
-let to_string { snake; game_state; apple; board; score } =
-  Core.sprintf
-    !{|Game state: %{sexp:Game_state.t}
-Apple: %{sexp:Apple.t}
-Board: %{sexp:Board.t}
-Snake:
-%s |}
+let to_string { snake; opponent; game_state; apple; board; score; opponent_score } =
+  Core.sprintf!{|Game state: %{sexp:Game_state.t}
+                 Apple: %{sexp:Apple.t}
+                 Board: %{sexp:Board.t}
+                 Snake: %s 
+                 Opponent: %s 
+                |}
     game_state
     apple
     board
     (Snake.to_string ~indent:2 snake)
+    (Snake.to_string ~indent:2 snake)
 ;;
 
 let create ~height ~width ~initial_snake_length =
-  let board = Board.create ~height ~width               in
-  let snake = Snake.create ~length:initial_snake_length in
-  let apple = Apple.create ~board ~snake                in
+  let board = Board.create ~height ~width in
+  let snake = Snake.create ~length:initial_snake_length ~direction:Right ~x:0 ~y:(initial_snake_length - 1)    in
+  let opponent = Snake.create ~length:initial_snake_length ~direction:Left ~x:(height - 1) ~y:(width - 1 - initial_snake_length) in
+  let apple = Apple.create ~board ~snake ~opponent in
   match apple with
   | None       -> failwith "unable to create initial apple"
   | Some apple ->
-    let t = { snake; apple; game_state = In_progress; board; score = 0 } in
-    if List.exists (Snake.all_locations snake) ~f:(fun pos ->
+    let t = { snake; opponent; apple; game_state = In_progress; board; score = 0; opponent_score = 0 } in
+    if List.exists ((Snake.all_locations snake) @ (Snake.all_locations opponent)) ~f:(fun pos ->
       not (Board.in_bounds t.board pos))
     then failwith "unable to create initial snake"
     else t
 ;;
 
 let snake      t = t.snake
+let opponent   t = t.opponent
 let apple      t = t.apple
 let game_state t = t.game_state
 let score      t = t.score
+let opponent_score t = t.opponent_score
 
 (* Exercise 02b:
 
@@ -104,9 +110,14 @@ let score      t = t.score
    Once you're done, go back to README.mkd for the next exercise.
 *)
 let handle_key t key =
-  match (Direction.of_key key) with 
-  | Some direction -> Snake.set_direction t.snake direction
-  | None -> ()
+  match key with 
+  | 'w' | 'a' | 's' | 'd' -> (match (Direction.of_key key) with 
+                               | Some direction -> Snake.set_direction t.snake direction
+                               | None -> ())
+  | 'i' | 'j' | 'k' | 'l' -> (match (Direction.of_key key) with 
+                               | Some direction -> Snake.set_direction t.opponent direction
+                               | None -> ())
+  | _ -> ()
 ;;
 
 (* Exercise 03b:
@@ -157,8 +168,12 @@ let check_for_collisions t =
     * If snake head is out of game board bounds, update t.game_state to game over.
   *)
   let snake_head_position = Snake.head t.snake in 
-    if not(Board.in_bounds t.board snake_head_position)
-    then t.game_state <- Game_state.Game_over "Out of bounds!"
+    let opponent_head_position = Snake.head t.opponent in 
+      let board = t.board in 
+        if not(Board.in_bounds board snake_head_position)
+        then t.game_state <- Game_state.Opponent_Win "Snake went out of bounds!"
+        else if not(Board.in_bounds board opponent_head_position)
+        then t.game_state <- Game_state.Snake_Win "Opponent went out of bounds!"
 ;;
 
 (* Exercise 06b:
@@ -184,20 +199,29 @@ let check_for_collisions t =
 let maybe_consume_apple t =
   (*
     * Find apple's current location.
-    * Check if snake head's position is at the apple's current location.
+    * Check if snake and opponent heads' position is at the apple's current location.
     * If true, call grow_over_next_steps with the amount to grow parameter, and spawn a new apple using Apple.create.
     * If Apple.create returns None, user won the game so update the game_state.
   *)
   let snake = t.snake in
-    let apple = t.apple in 
-      let score = t.score in
-        if Position.equal (Snake.head snake) (Apple.location apple)
-        then (
-          Snake.grow_over_next_steps snake (Apple.amount_to_grow apple);
-          match (Apple.create ~board:t.board ~snake:snake) with
-          | None -> t.game_state <- Game_state.Win
-          | Some new_apple -> (t.apple <- new_apple; t.score <- score + Apple.amount_to_grow apple)
-        )
+    let board = t.board in 
+      let opponent = t.opponent in 
+        let apple = t.apple in 
+          let growth_factor = Apple.amount_to_grow apple in 
+            let apple_location = Apple.location apple in
+              if Position.equal (Snake.head snake) apple_location
+              then (
+                Snake.grow_over_next_steps snake growth_factor;
+                match (Apple.create ~board ~snake ~opponent) with
+                | None -> t.game_state <- (Game_state.Snake_Win "Too bad, Opponent!")
+                | Some new_apple -> (t.apple <- new_apple; t.score <- t.score + growth_factor)
+              ) else if Position.equal (Snake.head opponent) apple_location
+              then (
+                Snake.grow_over_next_steps opponent growth_factor;
+                match (Apple.create ~board ~snake ~opponent) with 
+                | None -> t.game_state <- (Game_state.Opponent_Win "Too bad, Snake!")
+                | Some new_apple -> (t.apple <- new_apple; t.opponent_score <- t.opponent_score + growth_factor)
+              )
 ;;
 
 (* Exercise 04b:
@@ -216,12 +240,18 @@ let maybe_consume_apple t =
 
    When all the tests for exercise 04 pass, return to README.mkd for exercise 05. *)
 let step t =
-  if Snake.step t.snake
+  if Snake.step t.snake && Snake.step t.opponent
   then (
     check_for_collisions t;
-    maybe_consume_apple t)
+    maybe_consume_apple t
+  )
   else (
-    t.game_state <- Game_state.Game_over "Self collision!"
+    if not(Snake.step t.snake)
+    then (
+      t.game_state <- Game_state.Opponent_Win "Snake collided with itself!"
+    ) else (
+      t.game_state <- Game_state.Snake_Win "Opponent collided with itself!"
+    )
   )
 ;;
 

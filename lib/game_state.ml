@@ -2,13 +2,13 @@ open! Base
 
 type t =
   | In_progress
-  | Game_over of string
-  | Win
+  | Snake_Win of string
+  | Opponent_Win of string
 [@@deriving sexp_of, compare]
 
 let to_string t =
   match t with
   | In_progress -> ""
-  | Game_over x -> "Game over: " ^ x
-  | Win         -> "WIN!"
+  | Snake_Win x -> "SNAKE WINS! " ^ x
+  | Opponent_Win x -> "OPPONENT WINS! " ^ x
 ;;

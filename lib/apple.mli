@@ -13,7 +13,7 @@ type t [@@deriving sexp_of]
     the board's play area and does not overlap with the snake.
 
     [create] returns [None] if there are no valid positions for the apple. *)
-val create   : board:Board.t -> snake:Snake.t -> t option
+val create   : board:Board.t -> snake:Snake.t -> opponent:Snake.t -> t option
 
 (** [location] returns the location of the apple on the board. *)
 val location : t -> Position.t
@@ -26,6 +26,6 @@ val color    : t -> Color.t
 val amount_to_grow : t -> int
 
 module Exercises : sig
-  val exercise05 : board:Board.t -> snake:Snake.t -> t option
+  val exercise05 : board:Board.t -> snake:Snake.t -> opponent:Snake.t -> t option
   val create_with_location : Position.t -> Color.t -> t
 end

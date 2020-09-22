@@ -3,8 +3,8 @@ open! Base
 (** A [t] represents the current state of the game. *)
 type t =
   | In_progress
-  | Game_over of string (* The string is the reason the game ended. *)
-  | Win
+  | Snake_Win of string
+  | Opponent_Win of string
 [@@deriving sexp_of, compare]
 
 (** [to_string] pretty-prints the current game state into a string. *)

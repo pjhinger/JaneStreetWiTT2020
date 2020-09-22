@@ -31,7 +31,7 @@ let handle_steps (game : Game.t) ~game_over =
     Game.step game;
     Snake_graphics.render game;
     match Game.game_state game with
-    | Game_over _ | Win -> game_over := true
+    | Snake_Win _ | Opponent_Win _ -> game_over := true
     | In_progress       -> ())
 ;;
 

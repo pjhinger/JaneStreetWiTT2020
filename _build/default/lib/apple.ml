@@ -53,7 +53,7 @@ let amount_to_grow t =
    When you're done writing [create], make sure to check that tests pass by running
 
    $ test/exercise05/inline_test_runner *)
-let create ~board ~snake =
+let create ~board ~snake ~opponent =
   (*
     * Get all possible board locations.
     * Get all locations occupied by snake.
@@ -62,7 +62,7 @@ let create ~board ~snake =
   *)
   let new_color = if (Random.int 100) < 90 then Color.Red else Color.Gold in 
     let all_board_locations = Board.all_locations board in 
-      let all_snake_locations = (Snake.all_locations snake) in 
+      let all_snake_locations = ((Snake.all_locations snake) @ (Snake.all_locations opponent)) in 
         let possible_apple_locations = List.filter all_board_locations ~f:(fun element -> not(List.mem all_snake_locations element ~equal:Position.equal)) in 
           match possible_apple_locations with 
             | [] -> None

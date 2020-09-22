@@ -29,12 +29,16 @@ Extensions remaining: %d|}
   |> String.concat ~sep:"\n"
 ;;
 
-let create ~length =
-  { direction            = Right
-  ; extensions_remaining = 0
-  ; head                 = { Position.row = 0; col = length - 1 }
-  ; tail                 = List.init (length - 1) ~f:(fun col -> { Position.row = 0; col })
-  }
+let create ~length ~direction ~x ~y =
+  let snake_tail = (match direction with 
+    | Direction.Right -> List.init length ~f:(fun col -> { Position.row = x; col })
+    | Direction.Left -> List.init length ~f:(fun col -> { Position.row = x; col = col + y })
+    | _ -> []) in 
+    { direction            = direction
+    ; extensions_remaining = 0
+    ; head                 = { Position.row = x; col = y }
+    ; tail                 = snake_tail
+    }
 ;;
 
 (* Exercise 06a:

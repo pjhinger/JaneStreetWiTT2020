@@ -4,6 +4,7 @@ open! Base
 module Colors = struct
   let black            = Graphics.rgb 000 000 000
   let green            = Graphics.rgb 000 255 000
+  let blue             = Graphics.rgb 000 000 255
   let head_color       = Graphics.rgb 100 100 125
   let red              = Graphics.rgb 255 000 000
   let gold             = Graphics.rgb 255 223 000
@@ -46,13 +47,13 @@ let draw_block { Position.row; col } ~color =
   Graphics.fill_rect (col + 1) (row + 1) (block_size - 1) (block_size - 1)
 ;;
 
-let draw_header ~game_state ~score =
+let draw_header ~game_state ~score ~opponent_score =
   let open Constants in
   let header_color =
     match (game_state : Game_state.t) with
     | In_progress -> Colors.game_in_progress
-    | Game_over _ -> Colors.game_lost
-    | Win         -> Colors.game_won
+    | Snake_Win _ -> Colors.green
+    | Opponent_Win _ -> Colors.blue
   in
   Graphics.set_color header_color;
   Graphics.fill_rect 0 play_area_height play_area_width header_height;
@@ -61,8 +62,10 @@ let draw_header ~game_state ~score =
   Graphics.set_text_size 20;
   Graphics.moveto        0 (play_area_height + 25);
   Graphics.draw_string   (Printf.sprintf " %s" header_text);
-  Graphics.moveto        (play_area_width - 75) (play_area_height + 25);
-  Graphics.draw_string   (Printf.sprintf "Score: %d" score)
+  Graphics.moveto        (play_area_width - 125) (play_area_height + 25);
+  Graphics.draw_string   (Printf.sprintf "Snake's score: %d" score);
+  Graphics.moveto (play_area_width - 125) (play_area_height + 10);
+  Graphics.draw_string (Printf.sprintf "Opponent's score: %d" opponent_score)
 ;;
 
 let draw_play_area () =
@@ -76,22 +79,25 @@ let draw_apple apple =
   draw_block apple_location ~color:(Colors.apple_color apple)
 ;;
 
-let draw_snake snake_head snake_tail =
-  List.iter snake_tail ~f:(draw_block ~color:Colors.green);
+let draw_snake snake_head snake_tail color =
+  List.iter snake_tail ~f:(draw_block ~color:color);
   (* Snake head is a different color *)
   draw_block ~color:Colors.head_color snake_head
 ;;
 
 let render game =
   Graphics.display_mode false;
-  let snake = Game.snake game           in
-  let apple = Game.apple game           in
-  let game_state = Game.game_state game in
-  let score = Game.score game           in
-  draw_header ~game_state ~score;
+  let snake = Game.snake game                   in
+  let opponent = Game.opponent game             in
+  let apple = Game.apple game                   in
+  let game_state = Game.game_state game         in
+  let score = Game.score game                   in
+  let opponent_score = Game.opponent_score game in
+  draw_header ~game_state ~score ~opponent_score;
   draw_play_area ();
   draw_apple apple;
-  draw_snake (Snake.head snake) (Snake.tail snake);
+  draw_snake (Snake.head snake) (Snake.tail snake) Colors.green;
+  draw_snake (Snake.head opponent) (Snake.tail opponent) Colors.blue;
   Graphics.display_mode true;
   Graphics.synchronize  ()
 ;;

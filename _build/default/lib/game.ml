@@ -5,10 +5,11 @@ type t =
   ; mutable game_state : Game_state.t
   ; mutable apple      : Apple.t
   ; board              : Board.t
+  ; mutable score      : int
   }
 [@@deriving sexp_of]
 
-let to_string { snake; game_state; apple; board } =
+let to_string { snake; game_state; apple; board; score } =
   Core.sprintf
     !{|Game state: %{sexp:Game_state.t}
 Apple: %{sexp:Apple.t}
@@ -28,7 +29,7 @@ let create ~height ~width ~initial_snake_length =
   match apple with
   | None       -> failwith "unable to create initial apple"
   | Some apple ->
-    let t = { snake; apple; game_state = In_progress; board } in
+    let t = { snake; apple; game_state = In_progress; board; score = 0 } in
     if List.exists (Snake.all_locations snake) ~f:(fun pos ->
       not (Board.in_bounds t.board pos))
     then failwith "unable to create initial snake"
@@ -38,6 +39,7 @@ let create ~height ~width ~initial_snake_length =
 let snake      t = t.snake
 let apple      t = t.apple
 let game_state t = t.game_state
+let score      t = t.score
 
 (* Exercise 02b:
 
@@ -188,13 +190,14 @@ let maybe_consume_apple t =
   *)
   let snake = t.snake in
     let apple = t.apple in 
-      if Position.equal (Snake.head snake) (Apple.location apple)
-      then (
-        Snake.grow_over_next_steps snake (Apple.amount_to_grow apple);
-        match (Apple.create ~board:t.board ~snake:snake) with
-        | None -> t.game_state <- Game_state.Win
-        | Some new_apple -> t.apple <- new_apple
-      )
+      let score = t.score in
+        if Position.equal (Snake.head snake) (Apple.location apple)
+        then (
+          Snake.grow_over_next_steps snake (Apple.amount_to_grow apple);
+          match (Apple.create ~board:t.board ~snake:snake) with
+          | None -> t.game_state <- Game_state.Win
+          | Some new_apple -> (t.apple <- new_apple; t.score <- score + Apple.amount_to_grow apple)
+        )
 ;;
 
 (* Exercise 04b:

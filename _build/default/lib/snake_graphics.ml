@@ -46,7 +46,7 @@ let draw_block { Position.row; col } ~color =
   Graphics.fill_rect (col + 1) (row + 1) (block_size - 1) (block_size - 1)
 ;;
 
-let draw_header ~game_state =
+let draw_header ~game_state ~score =
   let open Constants in
   let header_color =
     match (game_state : Game_state.t) with
@@ -60,7 +60,9 @@ let draw_header ~game_state =
   Graphics.set_color     Colors.black;
   Graphics.set_text_size 20;
   Graphics.moveto        0 (play_area_height + 25);
-  Graphics.draw_string   (Printf.sprintf " %s" header_text)
+  Graphics.draw_string   (Printf.sprintf " %s" header_text);
+  Graphics.moveto        (play_area_width - 75) (play_area_height + 25);
+  Graphics.draw_string   (Printf.sprintf "Score: %d" score)
 ;;
 
 let draw_play_area () =
@@ -85,7 +87,8 @@ let render game =
   let snake = Game.snake game           in
   let apple = Game.apple game           in
   let game_state = Game.game_state game in
-  draw_header ~game_state;
+  let score = Game.score game           in
+  draw_header ~game_state ~score;
   draw_play_area ();
   draw_apple apple;
   draw_snake (Snake.head snake) (Snake.tail snake);

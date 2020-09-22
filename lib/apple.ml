@@ -60,9 +60,9 @@ let create ~board ~snake =
     * Find all locations NOT occupied by snake.
     * Choose a location at random from this list and return as an optional position.
   *)
-  let new_color = if (Random.int 100) < 50 then Color.Red else Color.Gold in 
+  let new_color = if (Random.int 100) < 90 then Color.Red else Color.Gold in 
     let all_board_locations = Board.all_locations board in 
-      let all_snake_locations = Snake.all_locations snake in 
+      let all_snake_locations = (Snake.all_locations snake) in 
         let possible_apple_locations = List.filter all_board_locations ~f:(fun element -> not(List.mem all_snake_locations element ~equal:Position.equal)) in 
           match possible_apple_locations with 
             | [] -> None

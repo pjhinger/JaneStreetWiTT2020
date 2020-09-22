@@ -153,9 +153,13 @@ let next_position t { Position.row; col } : Position.t =
 *)
 let of_key key =
   match key with
+  | 'i'
   | 'w' -> Some Up
+  | 'j'
   | 'a' -> Some Left
+  | 'k'
   | 's' -> Some Down
+  | 'l'
   | 'd' -> Some Right
   | _ -> None
 ;;

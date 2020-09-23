@@ -5,6 +5,7 @@ module Colors = struct
   let black            = Graphics.rgb 000 000 000
   let green            = Graphics.rgb 000 255 000
   let blue             = Graphics.rgb 000 000 255
+  let orange           = Graphics.rgb 252 102 003
   let head_color       = Graphics.rgb 100 100 125
   let red              = Graphics.rgb 255 000 000
   let gold             = Graphics.rgb 255 223 000
@@ -54,6 +55,7 @@ let draw_header ~game_state ~score ~opponent_score =
     | In_progress -> Colors.game_in_progress
     | Snake_Win _ -> Colors.green
     | Opponent_Win _ -> Colors.blue
+    | Draw -> Colors.orange
   in
   Graphics.set_color header_color;
   Graphics.fill_rect 0 play_area_height play_area_width header_height;

@@ -168,12 +168,20 @@ let check_for_collisions t =
     * If snake head is out of game board bounds, update t.game_state to game over.
   *)
   let snake_head_position = Snake.head t.snake in 
+  let snake_tail = Snake.tail t.snake in
     let opponent_head_position = Snake.head t.opponent in 
+    let opponent_tail = Snake.tail t.opponent in
       let board = t.board in 
         if not(Board.in_bounds board snake_head_position)
         then t.game_state <- Game_state.Opponent_Win "Snake went out of bounds!"
         else if not(Board.in_bounds board opponent_head_position)
         then t.game_state <- Game_state.Snake_Win "Opponent went out of bounds!"
+        else if Position.equal snake_head_position opponent_head_position
+        then t.game_state <- Game_state.Draw
+        else if List.exists opponent_tail ~f:(Position.equal snake_head_position)
+        then t.game_state <- Game_state.Opponent_Win "Snake collided with Opponent's tail!"
+        else if List.exists snake_tail ~f:(Position.equal opponent_head_position)
+        then t.game_state <- Game_state.Snake_Win "Opponent collided with Snake's tail!"
 ;;
 
 (* Exercise 06b:
